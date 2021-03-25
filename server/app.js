@@ -1,6 +1,22 @@
+const dotenv = require("dotenv").config();
+const mongoose = require("mongoose");
 const express = require("express");
 const app = express();
 
+const DB = process.env.REACT_APP_DB;
+
+console.log(DB);
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+  .then(() => {
+    console.log("connection successful with mongoDb");
+  })
+  .catch((err) => console.log("connetcion failed with mongoDb "));
 //middleware
 
 const middleware = (req, res, next) => {
