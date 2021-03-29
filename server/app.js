@@ -1,28 +1,20 @@
 const dotenv = require("dotenv").config();
-const mongoose = require("mongoose");
 const express = require("express");
 const app = express();
 
-const DB = process.env.REACT_APP_DB;
+const PORT = process.env.PORT | 5000;
+require("./db/connnection");
+// const User = require("./model/userSchema");
 
-console.log(DB);
-mongoose
-  .connect(DB, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-  })
-  .then(() => {
-    console.log("connection successful with mongoDb");
-  })
-  .catch((err) => console.log("connetcion failed with mongoDb "));
+app.use(express.json());
+//link router file
+app.use(require("./router/auth"));
 //middleware
 
-const middleware = (req, res, next) => {
-  console.log("middleware");
-};
-middleware();
+// const middleware = (req, res, next) => {
+//   console.log("middleware");
+// };
+// middleware();
 
 app.get("/", (req, res) => {
   res.send("hello world from server");
@@ -41,5 +33,5 @@ app.get("/signup", (req, res) => {
 });
 
 app.listen(5000, () => {
-  console.log(`server running at port 5000`);
+  console.log(`server running at port ${PORT}`);
 });

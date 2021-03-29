@@ -1,6 +1,10 @@
 const express = require("express");
-const { restart } = require("nodemon");
+
 const router = express.Router();
+
+const bcrypt = require("bcryptjs");
+
+const jwt = require("jsonwebtoken");
 
 require("../db/connnection");
 
@@ -21,13 +25,15 @@ router.post("/register", async (req, res) => {
     const response = await User.findOne({ email: email });
     if (response) {
       return res.status(422).json({ error: "Email already exists" });
+    } else if (password !== cpassword) {
+      return res.status(422).json({ error: "Password did not match " });
+    } else {
+      const user = new User({ name, email, phone, work, password, cpassword });
+
+      await user.save();
+
+      res.status(201).json({ message: "user registered successfully" });
     }
-
-    const user = new User({ name, email, phone, work, password, cpassword });
-
-    await user.save();
-
-    res.status(201).json({ message: "user registered successfully" });
   } catch (err) {
     console.log(err);
   }
@@ -40,11 +46,24 @@ router.post("/signin", async (req, res) => {
     if (!email || !password) {
       res.status(422).json({ error: "Please fill all the field " });
     }
-    const userLogin = await User.findOne({ email: email, password: password });
-    if (!userLogin) {
-      return res.status(422).json({ error: "Invalid Credentials" });
+    const userLogin = await User.findOne({ email: email });
+
+    if (userLogin) {
+      const passwordMatch = await bcrypt.compare(password, userLogin.password);
+      const token = await userLogin.generateAuthToken();
+
+      res.cookie("jwt-token", token, {
+        expires: new Date(Date.now() + 25892000000),
+        httpOnly: true,
+      });
+
+      if (!passwordMatch) {
+        return res.status(422).json({ error: "Invalid Credentials" });
+      } else {
+        return res.status(200).json({ message: "Login successful" });
+      }
     } else {
-      return res.status(200).json({ message: "Login successful" });
+      return res.status(422).json({ error: "Invalid Credentials" });
     }
   } catch (error) {
     console.log(error);
